@@ -3294,16 +3294,25 @@ Optional argument ARG indicates that any cache should be flushed."
   (speedbar-expand-line arg)
   ;; Now, inside the area expanded here, expand all subnodes of
   ;; the same descendant type.
-  (save-excursion
-    (speedbar-next 1) ;; Move into the list.
-    (let ((err nil))
-      (while (not err)
-	(condition-case nil
-	    (progn
-	      (speedbar-expand-line-descendants arg)
-	      (speedbar-restricted-next 1))
-	  (error (setq err t))))))
-  )
+  (let ((depth (save-excursion
+		 (beginning-of-line)
+		 (looking-at "[0-9]*:")
+		 (string-to-number (match-string 0))))
+	(next-depth (save-excursion
+		      (speedbar-next 1)
+		      (beginning-of-line)
+		      (looking-at "[0-9]*:")
+		      (string-to-number (match-string 0)))))
+    (if (= (+ 1 depth) next-depth)
+	(save-excursion
+	  (speedbar-next 1)
+	  (let ((err nil))
+	    (while (not err)
+	      (condition-case nil
+		  (progn
+		    (speedbar-expand-line-descendants arg)
+		    (speedbar-restricted-next 1))
+		(error (setq err t)))))))))
 
 (defun speedbar-contract-line-descendants ()
   "Expand the line under the cursor and all descendants."
